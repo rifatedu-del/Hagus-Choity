@@ -28,20 +28,20 @@ canvas{width:100%;height:100%;display:block}
 .ov h1{margin:0;font-size:38px;color:var(--accent)}
 .ov p{margin:0;font-size:17px;line-height:1.5;max-width:340px}
 .ov button{font-family:inherit;font-size:24px;font-weight:700;padding:14px 34px;border:0;border-radius:16px;background:var(--accent);color:#222;margin-top:8px}
-.hide{display:none}
+.hide{display:none}#snd{position:absolute;right:8px;top:8px;width:46px;height:46px;border-radius:50%;border:2px solid #34404f;background:#1d2530cc;font-size:22px;color:#fff;z-index:5}@keyframes sh{0%{transform:translateX(-3px)}50%{transform:translateX(3px)}100%{transform:translateX(-3px)}}#pee.shake{animation:sh .08s infinite}
 </style>
 </head>
 <body>
 <div id="app">
  <div id="hud">
   <div id="sc">স্কোর: ০</div><div id="pee" class="bar"><i></i></div>
-  <div style="font-size:12px;opacity:.8">টয়লেট চাপ</div><div id="sta" class="bar"><i></i></div>
+  <div style="font-size:12px;opacity:.8">💩 হ্যাগু চাপ</div><div id="sta" class="bar"><i></i></div>
  </div>
  <div id="wrap">
-  <canvas id="cv"></canvas>
+  <canvas id="cv"></canvas><button id="snd">🔊</button>
   <div id="start" class="ov">
    <h1>হাগুস চৈতি</h1>
-   <p>তৃতীয় বিজ্ঞান ভবন ও কেএফসি এলাকায় টয়লেট খুঁজে বের করো! চাপ ১০০% হওয়ার আগে পৌঁছাও, আর রিয়াজ বসের হাত থেকে বাঁচো।</p>
+   <p>হ্যাগু চাপ ১০০% হওয়ার আগে টয়লেটে পৌঁছাও! রিয়াজ বস থেকে বাঁচো, আর পানির বোতল খেলে চাপ আরও বাড়বে — সাবধান!</p>
    <button id="go">খেলা শুরু</button>
   </div>
   <div id="over" class="ov hide">
@@ -59,12 +59,12 @@ canvas{width:100%;height:100%;display:block}
 const W=1000,H=1500,cv=document.getElementById('cv'),ctx=cv.getContext('2d');
 const bn=n=>String(Math.round(n)).replace(/\d/g,d=>'০১২৩৪৫৬৭৮৯'[d]);
 const FONT="'Noto Sans Bengali','Kalpurush',sans-serif";
-const solids=[{x:150,y:80,w:700,h:330,t:'sci'},{x:300,y:650,w:400,h:200,t:'kfc'}];
+const solids=[{x:150,y:80,w:700,h:330,t:'sci'},{x:300,y:650,w:400,h:200,t:'kfc'},{x:60,y:620,w:170,h:120,t:'cant',n:'আবুল ক্যান্টিন'},{x:40,y:1040,w:260,h:150,t:'hall',n:'মনুজ্জন হল',c:'#2f5d8a'},{x:700,y:1040,w:260,h:150,t:'hall',n:'নবীন সমাদ্দার হল',c:'#6b3f8a'},{x:835,y:725,w:30,h:30,t:'mon'}];
 [[200,480],[700,480]].forEach(p=>solids.push({x:p[0],y:p[1],w:80,h:22,t:'bench'}));
-[[60,60],[930,60],[80,600],[900,640],[120,900],[860,900],[250,1100],[750,1100],[90,1300],[900,1350],[500,1420],[60,450],[940,450],[600,1000],[380,1250]]
+[[60,60],[930,60],[60,450],[940,450],[120,880],[930,900],[380,1100],[620,1100],[250,1330],[750,1330],[90,1420],[910,1430],[500,1440],[400,990],[600,990]]
  .forEach(p=>solids.push({x:p[0]-14,y:p[1]-14,w:28,h:28,t:'tree'}));
 [[300,1180],[650,930]].forEach(p=>solids.push({x:p[0],y:p[1],w:80,h:22,t:'bench'}));
-const toilets=[{x:90,y:300,n:'পশ্চিম টয়লেট'},{x:910,y:300,n:'পূর্ব টয়লেট'},{x:160,y:1000,n:'টয়লেট'},{x:840,y:1000,n:'টয়লেট'},{x:500,y:1300,n:'টয়লেট'}];
+const toilets=[{x:90,y:300,n:'বিজ্ঞান ভবন টয়লেট'},{x:910,y:300,n:'বিজ্ঞান ভবন টয়লেট'},{x:150,y:990,n:'মনুজ্জন হল টয়লেট'},{x:850,y:990,n:'নবীন সমাদ্দার হল টয়লেট'},{x:850,y:885,n:'ইবলিস চত্বর টয়লেট'},{x:255,y:785,n:'ক্যান্টিন টয়লেট'},{x:500,y:1330,n:'দক্ষিণ টয়লেট'}];
 let S,keys={dx:0,dy:0,run:false},best=0;
 try{best=+localStorage.getItem('hc_best')||0}catch(e){}
 function hit(x,y,r){if(x-r<0||y-r<0||x+r>W||y+r>H)return true;
@@ -72,10 +72,25 @@ function hit(x,y,r){if(x-r<0||y-r<0||x+r>W||y+r>H)return true;
 function mv(e,dx,dy,r){if(!hit(e.x+dx,e.y,r))e.x+=dx;if(!hit(e.x,e.y+dy,r))e.y+=dy}
 function newEnemy(){let x,y,t=0;do{x=60+Math.random()*(W-120);y=60+Math.random()*(H-120);t++}while((hit(x,y,20)||Math.hypot(x-S.p.x,y-S.p.y)<400)&&t<60);
  return{x,y,wx:x,wy:y}}
+function newBottle(){let x,y,t=0;do{x=50+Math.random()*(W-100);y=50+Math.random()*(H-100);t++}while(hit(x,y,14)&&t<80);return{x,y}}
+function say(t,l){if(S)S.say={t,l}}
 function pickToilet(){let t;do{t=toilets[Math.random()*toilets.length|0]}while(t===S.t&&toilets.length>1);S.t=t}
-function reset(){S={p:{x:500,y:540},pee:0,sta:100,score:0,en:[],over:false,time:0,flash:0,face:1};
- S.en.push(newEnemy());pickToilet()}
-function begin(){reset();show('start',0);show('over',0);S.run=true}
+function reset(){S={p:{x:500,y:540},pee:0,sta:100,score:0,en:[],over:false,time:0,flash:0,face:1,bot:[],say:null,sayT:3,fartT:4};
+ S.en.push(newEnemy());pickToilet();for(let i=0;i<5;i++)S.bot.push(newBottle())}
+function begin(){initAudio();reset();show('start',0);show('over',0);S.run=true}
+let AC=null,mute=false,mg=null,step=0;
+function initAudio(){if(AC)return;try{AC=new(window.AudioContext||window.webkitAudioContext)();mg=AC.createGain();mg.gain.value=.5;mg.connect(AC.destination);
+ const mel=[523,659,784,659,523,392,440,523,587,698,880,698,587,440,494,587],bas=[131,0,196,0,175,0,196,0];
+ setInterval(()=>{if(!AC||mute||!S||!S.run)return;const n=mel[step%16],b=bas[step%8];tone(n,'square',.12,.05);if(b)tone(b,'triangle',.2,.12);step++},170)}catch(e){}}
+function tone(f,type,d,v){if(!AC)return;const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+d);o.connect(g);g.connect(mg);o.start();o.stop(AC.currentTime+d+.02)}
+function fart(long){if(!AC||mute)return;const t=AC.currentTime,d=long?.9:.45,o=AC.createOscillator(),l=AC.createOscillator(),lg=AC.createGain(),g=AC.createGain();
+ o.type='sawtooth';o.frequency.setValueAtTime(110+Math.random()*40,t);o.frequency.exponentialRampToValueAtTime(45,t+d);
+ l.frequency.value=28+Math.random()*10;lg.gain.value=40;l.connect(lg);lg.connect(o.frequency);
+ g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.7,t+.04);g.gain.setValueAtTime(.7,t+d*.7);g.gain.exponentialRampToValueAtTime(.001,t+d);
+ o.connect(g);g.connect(mg);o.start(t);l.start(t);o.stop(t+d+.05);l.stop(t+d+.05)}
+function glug(){if(mute)return;tone(500,'sine',.1,.25);setTimeout(()=>tone(350,'sine',.12,.25),90);setTimeout(()=>tone(260,'sine',.15,.25),190)}
+function yay(){if(mute)return;[523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,'square',.15,.15),i*90))}
+function bubble(t,x,y){ctx.font='bold 14px '+FONT;const w=ctx.measureText(t).width+16;ctx.fillStyle='#fff';ctx.strokeStyle='#222';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(x-w/2,y-24,w,24,8);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(x-5,y);ctx.lineTo(x,y+8);ctx.lineTo(x+5,y);ctx.fill();ctx.fillStyle='#111';ctx.textAlign='center';ctx.fillText(t,x,y-7)}
 function show(id,v){document.getElementById(id).classList.toggle('hide',!v)}
 function end(why){S.over=true;S.run=false;if(S.score>best){best=S.score;try{localStorage.setItem('hc_best',best)}catch(e){}}
  document.getElementById('why').textContent=why;
@@ -92,9 +107,13 @@ function update(dt){
   if(d<230){tx=p.x;ty=p.y;sp=78+S.score*1.5}else{if(Math.hypot(e.wx-e.x,e.wy-e.y)<20||Math.random()<.003){e.wx=60+Math.random()*(W-120);e.wy=60+Math.random()*(H-120)}tx=e.wx;ty=e.wy;sp=55}
   const a=Math.atan2(ty-e.y,tx-e.x);mv(e,Math.cos(a)*sp*dt,Math.sin(a)*sp*dt,16);
   if(d<32){end('রিয়াজ বস ধরে ফেলেছে!');return}}
- const t=S.t;if(Math.hypot(p.x-t.x,p.y-t.y)<40){S.score++;S.pee=0;S.flash=1;S.sta=100;pickToilet()}
+ const t=S.t;if(Math.hypot(p.x-t.x,p.y-t.y)<40){S.score++;S.pee=0;S.flash=1;S.sta=100;pickToilet();fart(true);setTimeout(yay,600);say('আহ্‌! বাঁচলাম!',2)}
  S.flash=Math.max(0,S.flash-dt);
- if(S.pee>=100){S.pee=100;end('টয়লেট চাপ ১০০% হয়ে গেছে!')}
+ for(let i=0;i<S.bot.length;i++){const b=S.bot[i];if(Math.hypot(p.x-b.x,p.y-b.y)<28){S.pee=Math.min(100,S.pee+14);S.bot[i]=newBottle();glug();say('উফ্‌, পানি খেয়ে চাপ বাড়ল!',2.2)}}
+ if(S.say){S.say.l-=dt;if(S.say.l<=0)S.say=null}
+ S.sayT-=dt;if(S.sayT<=0&&S.pee>35&&!S.say){const L=['আমার হ্যাগু পেয়েছে।','গাড়ি থামান টয়লেটে যাবো।'];say(L[Math.random()*2|0],2.6);S.sayT=S.pee>70?3.5:6}
+ S.fartT-=dt;if(S.fartT<=0&&S.pee>60){fart();S.fartT=S.pee>85?2.5:5}
+ if(S.pee>=100){S.pee=100;fart(true);end('হ্যাগু চাপ ১০০% হয়ে গেছে!')}
 }
 function head(x,y,r,k){ctx.save();ctx.translate(x,y);
  if(k==='p'){ctx.fillStyle='#3b2418';ctx.beginPath();ctx.arc(0,-2,r+3,0,7);ctx.fill();ctx.fillStyle='#e8b48a';ctx.beginPath();ctx.arc(0,2,r,0,7);ctx.fill();
@@ -115,18 +134,21 @@ function draw(){
  ctx.save();ctx.scale(sc,sc);ctx.translate(-cx,-cy);
  ctx.fillStyle='#4e9a43';ctx.fillRect(0,0,W,H);
  ctx.fillStyle='#b9b3a3';ctx.fillRect(430,410,140,1090);ctx.fillRect(0,420,W,100);ctx.fillRect(260,860,480,80);ctx.fillRect(0,1190,W,80);ctx.fillRect(280,520,30,330);ctx.fillRect(690,520,30,330);
- ctx.fillStyle='#d6d0c0';ctx.fillRect(300,830,400,30);
+ ctx.fillStyle='#d6d0c0';ctx.fillRect(300,830,400,30);ctx.fillStyle='#a9a395';ctx.beginPath();ctx.arc(850,740,100,0,7);ctx.fill();ctx.strokeStyle='#d8d2c0';ctx.lineWidth=6;ctx.stroke();label('ইবলিস চত্বর',850,632,'#fff');
  for(const s of solids){
   if(s.t==='sci'){ctx.fillStyle='#8c3b2f';ctx.fillRect(s.x,s.y,s.w,s.h);ctx.fillStyle='#d9c9a6';for(let i=0;i<8;i++)for(let j=0;j<3;j++)ctx.fillRect(s.x+30+i*84,s.y+30+j*90,44,50);
    ctx.fillStyle='#3a2220';ctx.fillRect(s.x+s.w/2-40,s.y+s.h-70,80,70);label('তৃতীয় বিজ্ঞান ভবন',s.x+s.w/2,s.y-8,'#fff')}
-  else if(s.t==='kfc'){ctx.fillStyle='#d5202b';ctx.fillRect(s.x,s.y,s.w,s.h);ctx.fillStyle='#fff';ctx.fillRect(s.x,s.y+s.h-50,s.w,14);ctx.font='bold 40px '+FONT;ctx.textAlign='center';ctx.fillText('KFC',s.x+s.w/2,s.y+80);label('কেএফসি',s.x+s.w/2,s.y-8,'#fff')}
+  else if(s.t==='kfc'){ctx.fillStyle='#d5202b';ctx.fillRect(s.x,s.y,s.w,s.h);ctx.fillStyle='#fff';ctx.fillRect(s.x,s.y+s.h-50,s.w,14);ctx.font='bold 40px '+FONT;ctx.textAlign='center';ctx.fillText('KFC',s.x+s.w/2,s.y+80);label('কালাম ফুড কর্নার (কেএফসি)',s.x+s.w/2,s.y-8,'#fff')}
+  else if(s.t==='cant'||s.t==='hall'){ctx.fillStyle=s.c||'#c98a2b';ctx.fillRect(s.x,s.y,s.w,s.h);ctx.fillStyle='#e8e0c8';for(let i=0;i<Math.floor(s.w/50);i++){ctx.fillRect(s.x+14+i*50,s.y+14,28,30);ctx.fillRect(s.x+14+i*50,s.y+s.h-84,28,30)}ctx.fillStyle='#2a1d16';ctx.fillRect(s.x+s.w/2-18,s.y+s.h-34,36,34);label(s.n,s.x+s.w/2,s.y-8,'#fff')}
+  else if(s.t==='mon'){ctx.fillStyle='#777';ctx.fillRect(s.x,s.y,s.w,s.h);ctx.fillStyle='#bbb';ctx.fillRect(s.x+8,s.y-14,14,20)}
   else if(s.t==='bench'){ctx.fillStyle='#7a4f2a';ctx.fillRect(s.x,s.y,s.w,s.h);ctx.fillStyle='#4b2f18';ctx.fillRect(s.x,s.y+s.h-4,s.w,4)}
   else{ctx.fillStyle='#5b3a1c';ctx.fillRect(s.x+10,s.y+10,8,16);ctx.fillStyle='#2c7a2c';ctx.beginPath();ctx.arc(s.x+14,s.y+8,24,0,7);ctx.fill();ctx.fillStyle='#37913a';ctx.beginPath();ctx.arc(s.x+8,s.y+2,14,0,7);ctx.fill()}}
  for(const t of toilets){const act=t===S.t;ctx.font='34px sans-serif';ctx.textAlign='center';
   if(act){ctx.fillStyle='rgba(255,204,0,'+(.35+.25*Math.sin(S.time*6))+')';ctx.beginPath();ctx.arc(t.x,t.y,44,0,7);ctx.fill()}
   ctx.globalAlpha=act?1:.45;ctx.fillText('🚽',t.x,t.y+12);ctx.globalAlpha=1;if(act)label(t.n,t.x,t.y-32,'#ffe066')}
+ for(const b of S.bot){ctx.fillStyle='#5cc8ff';ctx.fillRect(b.x-6,b.y-10,12,20);ctx.fillStyle='#fff';ctx.fillRect(b.x-4,b.y-14,8,5);ctx.fillStyle='#ffffff99';ctx.fillRect(b.x-3,b.y-6,3,12)}
  for(const e of S.en){ctx.fillStyle='#7a1f1f';ctx.fillRect(e.x-14,e.y+8,28,22);head(e.x,e.y-4,18,'e');label('রিয়াজ বস',e.x,e.y-28,'#ff9a9a')}
- ctx.fillStyle='#f2c200';ctx.fillRect(p.x-11,p.y+10,22,20);head(p.x,p.y-4,15,'p');label('হাগুস চৈতি',p.x,p.y-26,'#ffe066');
+ const amp=S.pee>45?(S.pee-45)/55*5:0,ox=Math.sin(S.time*70)*amp,oy=Math.cos(S.time*83)*amp*.5;ctx.save();ctx.translate(p.x+ox,p.y+oy);ctx.rotate(Math.sin(S.time*55)*amp*.02);ctx.translate(-p.x,-p.y);ctx.fillStyle='#f2c200';ctx.fillRect(p.x-11,p.y+10,22,20);head(p.x,p.y-4,15,'p');ctx.restore();label('হাগুস চৈতি',p.x,p.y-26,'#ffe066');if(S.say)bubble(S.say.t,p.x,p.y-46);
  if(S.pee>70){ctx.font='20px sans-serif';ctx.fillText('😖',p.x+22,p.y-20)}
  ctx.restore();
  const t=S.t,tx=(t.x-cx)*sc,ty=(t.y-cy)*sc;
@@ -136,7 +158,7 @@ function draw(){
  const dm='টয়লেট: '+bn(Math.hypot(t.x-p.x,t.y-p.y)/10)+' মিটার';ctx.strokeText(dm,cw/2,ch-10);ctx.fillStyle='#fff';ctx.fillText(dm,cw/2,ch-10);
  if(S.flash>0){ctx.fillStyle='rgba(62,207,110,'+S.flash*.35+')';ctx.fillRect(0,0,cw,ch);label('বাঁচলাম! +১',cw/2,ch/2,'#9dffb8')}
  document.getElementById('sc').textContent='স্কোর: '+bn(S.score)+'  সেরা: '+bn(best);
- const pi=document.querySelector('#pee i');pi.style.width=S.pee+'%';document.querySelector('#sta i').style.width=S.sta+'%';
+ const pi=document.querySelector('#pee i');pi.style.width=S.pee+'%';document.getElementById('pee').classList.toggle('shake',S.pee>75);document.querySelector('#sta i').style.width=S.sta+'%';
 }
 let last=0;function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;update(dt);draw();requestAnimationFrame(loop)}
 const pad=document.getElementById('pad'),knob=document.getElementById('knob');
@@ -153,7 +175,7 @@ run.addEventListener('pointerdown',e=>{e.preventDefault();run.setPointerCapture(
 ['pointerup','pointercancel'].forEach(n=>run.addEventListener(n,()=>{keys.run=false;run.classList.remove('on')}));
 const kb={};addEventListener('keydown',e=>{kb[e.key]=1;kk()});addEventListener('keyup',e=>{kb[e.key]=0;kk()});
 function kk(){const x=(kb.ArrowRight||kb.d?1:0)-(kb.ArrowLeft||kb.a?1:0),y=(kb.ArrowDown||kb.s?1:0)-(kb.ArrowUp||kb.w?1:0);if(x||y||!keys.dx&&!keys.dy){keys.dx=x;keys.dy=y}keys.run=!!kb.Shift||keys.run&&!!run.classList.contains('on')}
-document.getElementById('go').onclick=begin;document.getElementById('again').onclick=begin;
+document.getElementById('snd').onclick=()=>{mute=!mute;document.getElementById('snd').textContent=mute?'🔇':'🔊'};document.getElementById('go').onclick=begin;document.getElementById('again').onclick=begin;
 document.addEventListener('contextmenu',e=>e.preventDefault());
 reset();S.run=false;requestAnimationFrame(loop);
 </script>
